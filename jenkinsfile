@@ -1,0 +1,28 @@
+pipeline
+{
+
+  def remote = [:]
+  remote.name = "ssh_fedora"
+  remote.host = "10.17.8.167"
+  remote.user = 'root'
+  remote.password = 'Visor1212'
+  remote.allowAnyHosts = true
+
+  node 
+  {
+    stage("ssh setup minikube") 
+    {
+      //start minikube
+      sshCommand remote: remote, command: 'minikube start --vm-driver=kvm2'
+
+      //deploying service
+      sshCommand remote: remote, command: 'kubectl create deployment fedora-apache --image=vakulenkoa/fedora30-apache24'
+      //#kubectl expose deployment fedora-apache --type=LoadBalancer --port=80
+      sshCommand remote: remote, command: 'kubectl expose deployment fedora-apache --type=NodePort --port=80'
+      sshCommand remote: remote, command: 'kubectl patch service fedora-apache --type="json" --patch="[{"op": "replace", "path": "/spec/ports/0/nodePort", "value":30000}]"'
+      sleep(30)//sleep for 3 seconds
+      sshCommand remote: remote, command: "curl `minikube service fedora-apache --url | grep -o 'http://\\([0-9]\\+\\.\\)\\+[0-9]\\+:[0-9]\\+'`"
+      sshCommand remote: remote, command: 'kubectl get pods'
+    }    
+  }
+}
