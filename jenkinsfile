@@ -1,5 +1,9 @@
-pipeline
-{
+import hudson.model.*
+import hudson.EnvVars
+import groovy.json.JsonSlurperClassic
+import groovy.json.JsonBuilder
+import groovy.json.JsonOutput
+import java.net.URL
 
   def remote = [:]
   remote.name = "ssh_fedora"
@@ -25,4 +29,3 @@ pipeline
       sshCommand remote: remote, command: 'kubectl get pods'
     }    
   }
-}
